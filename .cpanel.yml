@@ -1,0 +1,12 @@
+---
+deployment:
+  tasks:
+    - export COMPOSER_ALLOW_SUPERUSER=1
+    - cd backendLaravel
+    - composer install --no-dev --optimize-autoloader
+    - cp .env.example .env || true
+    - php artisan key:generate || true
+    - php artisan migrate --force || true
+    - cd ../frontend
+    - npm install
+    - npm run build
