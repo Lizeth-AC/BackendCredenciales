@@ -1,25 +1,39 @@
-# Imagen base
-FROM php:8.2-apache
+FROM php:8.2-fpm
 
-# Instalar extensiones necesarias para Laravel
+# Instala dependencias del sistema
 RUN apt-get update && apt-get install -y \
-    zip unzip git curl libzip-dev libpng-dev libonig-dev libxml2-dev \
-    && docker-php-ext-install pdo_mysql zip
+    build-essential \
+    libpng-dev \
+    libjpeg-dev \
+    libfreetype6-dev \
+    libzip-dev \
+    zip \
+    unzip \
+    curl \
+    git \
+    && docker-php-ext-install pdo pdo_mysql zip
 
-# Activar mod_rewrite para Laravel
-RUN a2enmod rewrite
+# Instala Composer
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# Instalar Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+# Establece el directorio de trabajo
+WORKDIR /var/www
 
-# Copiar archivos del proyecto al contenedor
-COPY . /var/www/html/
+# Copia los archivos del proyecto
+COPY . .
 
-# Establecer directorio de trabajo
-WORKDIR /var/www/html
+# Ajusta permisos (si usas Laravel)
+RUN chown -R www-data:www-data /var/www \
+    && chmod -R 775 /var/www/storage /var/www/bootstrap/cache
 
-# Instalar dependencias de Laravel
-RUN composer install --no-dev --optimize-autoloader
+# Instala dependencias de PHP
+RUN composer install --no-dev --optimize-autoloader -vvv
+
+# Expone el puerto que usarás en Render
+EXPOSE 8000
+
+# Comando para iniciar el servidor
+CMD php artisan serve --host=0.0.0.0 --port=8000
 
 # Establecer permisos
 RUN chown -R www-data:www-data storage bootstrap/cache
