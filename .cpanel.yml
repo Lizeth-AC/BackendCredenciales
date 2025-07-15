@@ -1,0 +1,17 @@
+deployment:
+  tasks:
+    - echo "===== BACKEND: Laravel ====="
+    - cd backendLaravel
+    - composer install --no-dev --optimize-autoloader
+    - cp .env.example .env || true
+    - php artisan key:generate || true
+    - php artisan migrate --force || true
+
+    - echo "===== FRONTEND: React ====="
+    - cd ../frontend
+    - npm install
+    - npm run build
+
+    - echo "===== COPIANDO ARCHIVOS COMPILADOS ====="
+    - rm -rf ../public_html/react
+    - cp -r build ../public_html/react
