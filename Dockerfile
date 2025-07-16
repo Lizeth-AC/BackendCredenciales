@@ -1,7 +1,6 @@
-# Usa PHP 8.2 con FPM
 FROM php:8.2-fpm
 
-# Instala dependencias del sistema y extensiones requeridas
+# Instala dependencias del sistema
 RUN apt-get update && apt-get install -y \
     build-essential \
     libpng-dev \
@@ -14,7 +13,7 @@ RUN apt-get update && apt-get install -y \
     git \
     && docker-php-ext-install pdo pdo_mysql zip bcmath
 
-# Copia Composer desde la imagen oficial
+# Instala Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 # Establece el directorio de trabajo
@@ -30,10 +29,8 @@ RUN chown -R www-data:www-data /var/www \
 # Instala dependencias de PHP
 RUN composer install --no-dev --optimize-autoloader -vvv
 
-# Expone el puerto 8000 (usado por php artisan serve)
+# Expone el puerto
 EXPOSE 8000
 
-# Comando por defecto para iniciar Laravel
+# Comando para iniciar Laravel
 CMD php artisan serve --host=0.0.0.0 --port=8000
-RUN COMPOSER_MEMORY_LIMIT=-1 composer install --no-dev --optimize-autoloader -vvv
-
