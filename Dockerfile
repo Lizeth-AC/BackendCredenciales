@@ -1,34 +1,39 @@
-# Imagen base
-FROM php:8.2-apache
+# Usa PHP 8.2 con FPM
+FROM php:8.2-fpm
 
-# Instalar extensiones necesarias para Laravel
+# Instala dependencias del sistema y extensiones requeridas
 RUN apt-get update && apt-get install -y \
-    zip unzip git curl libzip-dev libpng-dev libonig-dev libxml2-dev \
-    && docker-php-ext-install pdo_mysql zip
+    build-essential \
+    libpng-dev \
+    libjpeg-dev \
+    libfreetype6-dev \
+    libzip-dev \
+    zip \
+    unzip \
+    git \
+    curl \
+    && docker-php-ext-install pdo pdo_mysql zip
 
-# Activar mod_rewrite para Laravel
-RUN a2enmod rewrite
+# Copia Composer desde la imagen oficial
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# Instalar Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+# Establece el directorio de trabajo
+WORKDIR /var/www
 
-# Copiar archivos del proyecto al contenedor
-COPY . /var/www/html/
+# Copia los archivos del proyecto
+COPY . .
 
-# Establecer directorio de trabajo
-WORKDIR /var/www/html
+# Ajusta permisos
+RUN chown -R www-data:www-data /var/www \
+    && chmod -R 775 /var/www/storage /var/www/bootstrap/cache
 
-# Instalar dependencias de Laravel
-RUN composer install --no-dev --optimize-autoloader
+# Instala dependencias de PHP
+RUN composer install --no-dev --optimize-autoloader -vvv
 
-# Establecer permisos
-RUN chown -R www-data:www-data storage bootstrap/cache
+# Expone el puerto 8000 (usado por php artisan serve)
+EXPOSE 8000
 
-# Establecer DocumentRoot en Apache para usar /public
-ENV APACHE_DOCUMENT_ROOT /var/www/html/public
+# Comando por defecto para iniciar Laravel
+CMD php artisan serve --host=0.0.0.0 --port=8000
+RUN COMPOSER_MEMORY_LIMIT=-1 composer install --no-dev --optimize-autoloader -vvv
 
-# Cambiar configuración de Apache para apuntar a /public
-RUN sed -ri -e 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/*.conf
-
-# Exponer puerto 80
-EXPOSE 80
