@@ -29,8 +29,8 @@ RUN chown -R www-data:www-data /var/www \
 # Instala dependencias de PHP
 RUN composer install --no-dev --optimize-autoloader -vvv
 
-# Expone el puerto
+# Expone el puerto que usarás en Render
 EXPOSE 8000
 
-# Comando para iniciar Laravel
+# Comando para iniciar el servidor
 CMD php artisan serve --host=0.0.0.0 --port=8000
