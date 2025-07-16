@@ -35,3 +35,5 @@ EXPOSE 8000
 
 # Comando por defecto para iniciar Laravel
 CMD php artisan serve --host=0.0.0.0 --port=8000
+RUN COMPOSER_MEMORY_LIMIT=-1 composer install --no-dev --optimize-autoloader -vvv
+
